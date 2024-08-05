@@ -1,6 +1,7 @@
 package com.devil7softwares.aescamera
 
 import android.app.Application
+import java.io.File
 
 class AESCameraApplication : Application() {
     var key: String? = null
@@ -22,5 +23,33 @@ class AESCameraApplication : Application() {
             this.keyDigest = sb.toString()
         }
     var keyDigest: String? = null
+        private set(value) {
+            field = value
+
+            val mediaDir = externalMediaDirs.firstOrNull()?.let {
+                File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
+            }
+
+            if (value != null && mediaDir != null && mediaDir.exists()) {
+                val keyDir = File(mediaDir, value) .apply { mkdirs() }
+
+                if (keyDir.exists()) {
+                    this.outputDirectory = keyDir
+                } else {
+                    this.outputDirectory = mediaDir
+                }
+            } else {
+                this.outputDirectory = filesDir
+            }
+        }
+    var outputDirectory: File? = null
+        private set (value) {
+            field = value
+
+            if (value != null) {
+                this.thumbnailDirectory = File(value, ".thumbs").apply { mkdirs() }
+            }
+        }
+    var thumbnailDirectory: File? = null
         private set
 }

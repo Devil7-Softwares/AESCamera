@@ -2,6 +2,8 @@ package com.devil7softwares.aescamera
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -14,6 +16,8 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.devil7softwares.aescamera.databinding.ActivityMainBinding
+import com.devil7softwares.aescamera.utils.EncryptionUtils
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -25,7 +29,6 @@ class MainActivity : ProtectedBaseActivity() {
 
     private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private var imageCapture: ImageCapture? = null
-    private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +39,6 @@ class MainActivity : ProtectedBaseActivity() {
 
         supportActionBar?.hide();
 
-        outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         // Check camera permissions if all permission granted
@@ -55,6 +57,16 @@ class MainActivity : ProtectedBaseActivity() {
         }
     }
 
+    private fun disableControls() {
+        binding.cameraCaptureButton.isEnabled = false
+        binding.cameraFlipButton.isEnabled = false
+    }
+
+    private fun enableControls() {
+        binding.cameraCaptureButton.isEnabled = true
+        binding.cameraFlipButton.isEnabled = true
+    }
+
     private fun flipCamera() {
         cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
             CameraSelector.DEFAULT_FRONT_CAMERA
@@ -65,29 +77,61 @@ class MainActivity : ProtectedBaseActivity() {
     }
 
     private fun takePhoto() {
+        disableControls()
         val imageCapture = imageCapture ?: return
-
-        val photoFile = File(
-            outputDirectory,
-            SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis()) + ".jpg"
-        )
-
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
+        val outputStream = ByteArrayOutputStream()
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputStream).build()
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
-                    Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
+                    val msg = "Photo capture failed: ${exc.message}"
+                    Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
+                    Log.e(TAG, msg, exc)
+                    enableControls()
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val savedUri = Uri.fromFile(photoFile)
+                    val app = application as AESCameraApplication
+                    val key = app.key
+                    val outputDirectory = app.outputDirectory
+                    val thumbnailDirectory = app.thumbnailDirectory
+                    if (key == null) {
+                        Toast.makeText(this@MainActivity, "Key not found", Toast.LENGTH_SHORT).show()
+                        return
+                    }
 
-                    val msg = "Photo capture succeeded: $savedUri"
+                    val timestamp = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())
+
+                    val fileName = "IMG-$timestamp.enc"
+
+                    // Create main encrypted file
+                    val encryptedFile = File(outputDirectory, fileName)
+                    EncryptionUtils.encrypt(outputStream, key).let {
+                        encryptedFile.writeBytes(it)
+                    }
+
+                    // Create and encrypt thumbnail
+                    val thumbnailFile = File(thumbnailDirectory, fileName)
+
+                    // Create thumbnail
+                    val fullSizeImage = BitmapFactory.decodeByteArray(outputStream.toByteArray(), 0, outputStream.size())
+                    val thumbnailSize = 200 // Adjust this value for desired thumbnail size
+                    val thumbnail = Bitmap.createScaledBitmap(fullSizeImage, thumbnailSize, thumbnailSize, true)
+
+                    val thumbnailOutputStream = ByteArrayOutputStream()
+                    thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, thumbnailOutputStream)
+
+                    // Encrypt and save thumbnail
+                    EncryptionUtils.encrypt(thumbnailOutputStream, key).let {
+                        thumbnailFile.writeBytes(it)
+                    }
+
+                    val msg = "Photo and thumbnail saved: ${encryptedFile.toURI()}"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
                     Log.d(TAG, msg)
+                    enableControls()
                 }
             })
     }
@@ -124,15 +168,6 @@ class MainActivity : ProtectedBaseActivity() {
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
-    }
-
-    // creates a folder inside internal storage
-    private fun getOutputDirectory(): File {
-        val mediaDir = externalMediaDirs.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
-        }
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else filesDir
     }
 
     // checks the camera permission
