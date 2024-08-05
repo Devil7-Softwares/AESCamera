@@ -50,6 +50,18 @@ class MainActivity : ProtectedBaseActivity() {
         binding.cameraCaptureButton.setOnClickListener {
             takePhoto()
         }
+        binding.cameraFlipButton.setOnClickListener {
+            flipCamera()
+        }
+    }
+
+    private fun flipCamera() {
+        cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+            CameraSelector.DEFAULT_FRONT_CAMERA
+        } else {
+            CameraSelector.DEFAULT_BACK_CAMERA
+        }
+        startCamera()
     }
 
     private fun takePhoto() {

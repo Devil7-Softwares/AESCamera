@@ -5,4 +5,5 @@
 
     <string name="fa_solid">solid</string>
     <string name="fa_camera">f030</string>
+    <string name="fa_camera_rotate">e0d8</string>
 </resources>
