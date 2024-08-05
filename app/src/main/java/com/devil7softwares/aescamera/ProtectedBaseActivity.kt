@@ -15,13 +15,6 @@ abstract class ProtectedBaseActivity : AppCompatActivity() {
         checkPassword()
     }
 
-    override fun onPause() {
-        super.onPause()
-
-        // Clear the key when the app is paused
-        (application as AESCameraApplication).key = null
-    }
-
     override fun onResume() {
         super.onResume()
 

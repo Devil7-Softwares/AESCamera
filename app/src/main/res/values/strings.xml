@@ -3,7 +3,13 @@
     <string name="enter_encryption_key">Enter encryption key</string>
     <string name="enter_encryption_key_title">Enter Encryption Key</string>
 
+    <string name="files_list_title">Files</string>
+
     <string name="fa_solid">solid</string>
     <string name="fa_camera">f030</string>
     <string name="fa_camera_rotate">e0d8</string>
+    <string name="fa_folder_open">f07c</string>
+    <string name="fa_file">f15b</string>
+    <string name="fa_file_image">f1c5</string>
+    <string name="fa_file_video">f1c8</string>
 </resources>

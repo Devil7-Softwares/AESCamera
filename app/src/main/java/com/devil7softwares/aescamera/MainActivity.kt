@@ -1,6 +1,7 @@
 package com.devil7softwares.aescamera
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -16,6 +17,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.devil7softwares.aescamera.databinding.ActivityMainBinding
+import com.devil7softwares.aescamera.list.FilesListActivity
 import com.devil7softwares.aescamera.utils.EncryptionUtils
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -55,16 +57,26 @@ class MainActivity : ProtectedBaseActivity() {
         binding.cameraFlipButton.setOnClickListener {
             flipCamera()
         }
+        binding.openFilesListButton.setOnClickListener {
+            openFilesList()
+        }
     }
 
     private fun disableControls() {
         binding.cameraCaptureButton.isEnabled = false
         binding.cameraFlipButton.isEnabled = false
+        binding.openFilesListButton.isEnabled = false
     }
 
     private fun enableControls() {
         binding.cameraCaptureButton.isEnabled = true
         binding.cameraFlipButton.isEnabled = true
+        binding.openFilesListButton.isEnabled = true
+    }
+
+    private  fun openFilesList() {
+        val intent = Intent(this, FilesListActivity::class.java)
+        startActivity(intent)
     }
 
     private fun flipCamera() {

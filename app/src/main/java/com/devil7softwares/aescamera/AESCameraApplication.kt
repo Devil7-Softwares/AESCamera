@@ -1,12 +1,15 @@
 package com.devil7softwares.aescamera
 
 import android.app.Application
+import androidx.lifecycle.MutableLiveData
 import java.io.File
 
 class AESCameraApplication : Application() {
+    var keyLiveData: MutableLiveData<String?> = MutableLiveData()
     var key: String? = null
         set(value) {
             field = value
+            keyLiveData.value = value
 
             if (value == null) {
                 this.keyDigest = null

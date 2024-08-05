@@ -18,6 +18,10 @@
         android:theme="@style/Theme.AESCamera"
         tools:targetApi="31">
         <activity
+            android:name=".list.FilesListActivity"
+            android:exported="false"
+            />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
