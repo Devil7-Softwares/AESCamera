@@ -1,8 +1,10 @@
 package com.devil7softwares.aescamera.list
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +19,7 @@ import com.devil7softwares.aescamera.R
 import com.devil7softwares.aescamera.databinding.ActivityFilesListBinding
 import com.devil7softwares.aescamera.databinding.ItemFileBinding
 import com.devil7softwares.aescamera.utils.EncryptionUtils
+import com.devil7softwares.aescamera.viewer.DecryptedImageViewerActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -39,6 +42,15 @@ class FileAdapter(
     }
 
     inner class FileViewHolder(private val binding: ItemFileBinding) : RecyclerView.ViewHolder(binding.root) {
+        init {
+            itemView.setOnClickListener {
+                val file = getItem(bindingAdapterPosition)
+                val intent = Intent(context, DecryptedImageViewerActivity::class.java)
+                intent.data = Uri.fromFile(file)
+                context.startActivity(intent)
+            }
+        }
+
         fun bind(file: File) {
             binding.fileName.text = file.name
             binding.fileSize.text = formatFileSize(file.length())
