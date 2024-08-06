@@ -5,9 +5,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
@@ -27,12 +27,14 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+
 class MainActivity : ProtectedBaseActivity() {
     private lateinit var binding: ActivityMainBinding;
 
     private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
+    private var thumbnailSize: Int = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,6 +76,8 @@ class MainActivity : ProtectedBaseActivity() {
         binding.lockButton.setOnClickListener {
             lock()
         }
+
+        thumbnailSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
     }
 
     private fun disableControls() {
@@ -149,7 +153,6 @@ class MainActivity : ProtectedBaseActivity() {
 
                     // Create thumbnail
                     val fullSizeImage = BitmapFactory.decodeByteArray(outputStream.toByteArray(), 0, outputStream.size())
-                    val thumbnailSize = 200 // Adjust this value for desired thumbnail size
                     val thumbnail = Bitmap.createScaledBitmap(fullSizeImage, thumbnailSize, thumbnailSize, true)
 
                     val thumbnailOutputStream = ByteArrayOutputStream()
