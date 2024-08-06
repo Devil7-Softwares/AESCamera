@@ -13,6 +13,10 @@ abstract class ProtectedBaseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         checkPassword()
+
+        (application as AESCameraApplication).keyLiveData.observe(this) {
+            checkPassword()
+        }
     }
 
     override fun onResume() {
