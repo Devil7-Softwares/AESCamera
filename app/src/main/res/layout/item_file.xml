@@ -9,8 +9,7 @@
         android:id="@+id/fileCheckBox"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:padding="0dp"
-     />
+        android:padding="0dp" />
 
     <com.devil7softwares.aescamera.views.FontAwesomeTextView
         android:id="@+id/fileIcon"
@@ -24,6 +23,8 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
         android:visibility="gone" />
 
     <androidx.appcompat.widget.AppCompatTextView

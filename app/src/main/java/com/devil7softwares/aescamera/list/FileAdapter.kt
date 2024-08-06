@@ -62,28 +62,26 @@ class FileAdapter(
             binding.fileSize.text = formatFileSize(file.length())
             binding.fileCheckBox.isChecked = isSelected
 
+            showIcon(context.getString(R.string.fa_file_image))
+
             if (file.name.startsWith("IMG-") && thumbnailDirectory != null) {
                 val thumbnailFile = File(thumbnailDirectory, file.name)
                 if (thumbnailFile.exists()) {
                     loadDecryptedThumbnail(thumbnailFile)
-                } else {
-                    showIcon(context.getString(R.string.fa_file_image))
                 }
-            } else {
-                showIcon(context.getString(R.string.fa_file))
             }
         }
 
         private fun showThumbnail(bitmap: Bitmap) {
+            binding.fileThumbnail.setImageBitmap(bitmap)
             binding.fileIcon.visibility = View.GONE
             binding.fileThumbnail.visibility = View.VISIBLE
-            binding.fileThumbnail.setImageBitmap(bitmap)
         }
 
         private fun showIcon(icon: String) {
+            binding.fileIcon.setIcon(icon)
             binding.fileIcon.visibility = View.VISIBLE
             binding.fileThumbnail.visibility = View.GONE
-            binding.fileIcon.setIcon(icon)
         }
 
         private fun loadDecryptedThumbnail(thumbnailFile: File) {
