@@ -13,10 +13,10 @@ class AESCameraApplication : Application() {
     var key: String? = null
         set(value) {
             field = value
-            keyLiveData.value = value
 
             if (value == null) {
                 this.keyDigest = null
+                keyLiveData.value = value
                 return
             }
 
@@ -27,7 +27,10 @@ class AESCameraApplication : Application() {
             for (b in digest) {
                 sb.append(String.format("%02x", b))
             }
+
             this.keyDigest = sb.toString()
+
+            keyLiveData.value = value
         }
     var keyDigest: String? = null
         private set(value) {
