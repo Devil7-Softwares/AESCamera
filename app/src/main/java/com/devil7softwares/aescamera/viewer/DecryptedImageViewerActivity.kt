@@ -75,6 +75,10 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
         binding.decryptedImageView.setImageResource(R.drawable.ic_blank)
     }
 
+    private fun setLoading(loading: Boolean) {
+        binding.decryptedImageViewProgress.visibility = if (loading) View.VISIBLE else View.GONE
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     private fun loadDecryptedImage() {
         val fileUri = this.fileUri;
@@ -85,6 +89,8 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
         }
 
         clearError()
+
+        setLoading(true)
 
         GlobalScope.launch(Dispatchers.IO) {
             try {
@@ -140,6 +146,10 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
                         this@DecryptedImageViewerActivity, "Error: ${e.message}", Toast.LENGTH_LONG
                     ).show()
                     finish()
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    setLoading(false)
                 }
             }
         }

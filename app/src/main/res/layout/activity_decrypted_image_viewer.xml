@@ -66,5 +66,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/decryptedImageViewError" />
 
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/decryptedImageViewProgress"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:indeterminate="true"
+        app:indicatorSize="64dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:trackThickness="6dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
