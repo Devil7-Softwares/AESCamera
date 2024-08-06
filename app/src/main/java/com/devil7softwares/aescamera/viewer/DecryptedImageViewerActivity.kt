@@ -11,6 +11,7 @@ import android.os.Build.VERSION
 import android.view.MenuItem
 import android.widget.Toast
 import com.devil7softwares.aescamera.AESCameraApplication
+import com.devil7softwares.aescamera.R
 import com.devil7softwares.aescamera.databinding.ActivityDecryptedImageViewerBinding
 import com.devil7softwares.aescamera.utils.EncryptionUtils
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -29,6 +30,7 @@ class DecryptedImageViewerActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.decrypted_image_viewer_title)
 
         var fileUri = intent.data;
 
@@ -42,6 +44,8 @@ class DecryptedImageViewerActivity : AppCompatActivity() {
 
         if (fileUri != null) {
             loadDecryptedImage(fileUri)
+            supportActionBar?.title =
+                fileUri.lastPathSegment ?: getString(R.string.decrypted_image_viewer_title)
         } else {
             Toast.makeText(this, "Error: No file selected", Toast.LENGTH_SHORT).show()
             finish()
@@ -65,14 +69,11 @@ class DecryptedImageViewerActivity : AppCompatActivity() {
 
                 withContext(Dispatchers.Main) {
                     binding.decryptedImageView.setImageBitmap(bitmap)
-                    supportActionBar?.title = fileUri.lastPathSegment ?: "Decrypted Image"
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
-                        this@DecryptedImageViewerActivity,
-                        "Error: ${e.message}",
-                        Toast.LENGTH_LONG
+                        this@DecryptedImageViewerActivity, "Error: ${e.message}", Toast.LENGTH_LONG
                     ).show()
                     finish()
                 }
