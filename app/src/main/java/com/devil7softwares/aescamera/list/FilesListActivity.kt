@@ -116,8 +116,9 @@ class FilesListActivity : ProtectedBaseActivity() {
     private fun refreshFileList() {
         val app = application as AESCameraApplication
         val files =
-            app.outputDirectory?.listFiles()?.filter { it.isFile && !it.name.startsWith(".") }
+            app.outputDirectory?.listFiles()?.filter { it.isFile && !it.name.startsWith(".") && it.extension == "enc" }
                 ?: emptyList()
+        adapter.encryptionKey = app.key
         adapter.submitList(files)
     }
 

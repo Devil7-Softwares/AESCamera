@@ -30,7 +30,7 @@ import java.io.File
 class FileAdapter(
     private val context: Context,
     private val thumbnailDirectory: File?,
-    private var encryptionKey: String?,
+    var encryptionKey: String?,
     private val onItemClick: (File) -> Unit,
     private val onSelectionChanged: (Int) -> Unit
 ) : ListAdapter<File, FileAdapter.FileViewHolder>(FileDiffCallback()) {
