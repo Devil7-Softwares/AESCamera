@@ -9,6 +9,11 @@
     <string name="share">Share</string>
 
     <string name="decrypted_image_viewer_title">Decrypted Image</string>
+    <string name="error_no_file_selected">Error: No file selected</string>
+    <string name="enter_key_message">Enter key to decrypt image</string>
+    <string name="file_open_failed_message">Unable to open file!</string>
+    <string name="image_decryption_failed_message">Failed to decrypt image!</string>
+    <string name="image_decode_failed_message">Failed to decode image!</string>
 
     <string name="fa_solid">solid</string>
     <string name="fa_camera">f030</string>
@@ -17,4 +22,5 @@
     <string name="fa_file">f15b</string>
     <string name="fa_file_image">f1c5</string>
     <string name="fa_file_video">f1c8</string>
+    <string name="fa_key">f084</string>
 </resources>
