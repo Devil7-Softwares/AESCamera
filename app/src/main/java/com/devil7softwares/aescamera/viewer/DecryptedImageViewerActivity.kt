@@ -2,6 +2,7 @@ package com.devil7softwares.aescamera.viewer
 
 import android.os.Bundle
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -9,6 +10,7 @@ import android.os.Build.VERSION
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import com.devil7softwares.aescamera.AESCameraApplication
 import com.devil7softwares.aescamera.ProtectedBaseActivity
@@ -28,6 +30,12 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
+
         binding = ActivityDecryptedImageViewerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -49,7 +57,8 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
                 fileUri?.lastPathSegment ?: getString(R.string.decrypted_image_viewer_title)
             loadDecryptedImage()
         } else {
-            Toast.makeText(this, getString(R.string.error_no_file_selected), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_no_file_selected), Toast.LENGTH_SHORT)
+                .show()
             finish()
         }
 
@@ -71,7 +80,8 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
     private fun showError(message: String, showResetKey: Boolean = false) {
         binding.decryptedImageViewError.text = message
         binding.decryptedImageViewError.visibility = View.VISIBLE
-        binding.decryptedImageViewResetKey.visibility = if (showResetKey) View.VISIBLE else View.GONE
+        binding.decryptedImageViewResetKey.visibility =
+            if (showResetKey) View.VISIBLE else View.GONE
         binding.decryptedImageView.setImageResource(R.drawable.ic_blank)
     }
 
