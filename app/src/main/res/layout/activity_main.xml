@@ -17,15 +17,33 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.devil7softwares.aescamera.views.FontAwesomeButton
+        android:id="@+id/lock_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="30dp"
+        android:elevation="2dp"
+        android:padding="0dp"
+        android:scaleType="fitCenter"
+        android:textColor="@color/white"
+        android:textSize="25sp"
+        android:visibility="gone"
+        app:faIcon="@string/fa_lock"
+        app:faStyle="solid"
+        app:iconTint="@null"
+        app:layout_constraintLeft_toRightOf="@id/camera_capture_button"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.devil7softwares.aescamera.views.FontAwesomeButton
         android:id="@+id/camera_capture_button"
         android:layout_width="90dp"
         android:layout_height="90dp"
         android:layout_marginBottom="30dp"
         android:elevation="2dp"
+        android:padding="0dp"
         android:scaleType="fitCenter"
         android:textColor="@color/white"
         android:textSize="50sp"
-        android:padding="0dp"
         app:faIcon="@string/fa_camera"
         app:faStyle="solid"
         app:iconTint="@null"
@@ -38,33 +56,33 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:elevation="2dp"
+        android:padding="0dp"
         android:scaleType="fitCenter"
         android:textColor="@color/white"
         android:textSize="30sp"
-        android:padding="0dp"
         app:faIcon="@string/fa_camera_rotate"
         app:faStyle="solid"
         app:iconTint="@null"
         app:layout_constraintBottom_toBottomOf="@id/camera_capture_button"
-        app:layout_constraintTop_toTopOf="@id/camera_capture_button"
         app:layout_constraintLeft_toRightOf="@id/camera_capture_button"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/camera_capture_button" />
 
     <com.devil7softwares.aescamera.views.FontAwesomeButton
         android:id="@+id/open_files_list_button"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:elevation="2dp"
+        android:padding="0dp"
         android:scaleType="fitCenter"
         android:textColor="@color/white"
         android:textSize="30sp"
-        android:padding="0dp"
         app:faIcon="@string/fa_folder_open"
         app:faStyle="solid"
         app:iconTint="@null"
         app:layout_constraintBottom_toBottomOf="@id/camera_capture_button"
-        app:layout_constraintTop_toTopOf="@id/camera_capture_button"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/camera_capture_button"
-        app:layout_constraintLeft_toLeftOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/camera_capture_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

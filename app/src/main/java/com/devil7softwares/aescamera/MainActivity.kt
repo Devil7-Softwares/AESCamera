@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -51,6 +52,16 @@ class MainActivity : ProtectedBaseActivity() {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
+        val app = application as AESCameraApplication
+
+        app.keyLiveData.observe(this) {
+            binding.lockButton.visibility = if (it == null) {
+                View.GONE
+            } else {
+                View.VISIBLE
+            }
+        }
+
         binding.cameraCaptureButton.setOnClickListener {
             takePhoto()
         }
@@ -59,6 +70,9 @@ class MainActivity : ProtectedBaseActivity() {
         }
         binding.openFilesListButton.setOnClickListener {
             openFilesList()
+        }
+        binding.lockButton.setOnClickListener {
+            lock()
         }
     }
 
@@ -72,6 +86,12 @@ class MainActivity : ProtectedBaseActivity() {
         binding.cameraCaptureButton.isEnabled = true
         binding.cameraFlipButton.isEnabled = true
         binding.openFilesListButton.isEnabled = true
+    }
+
+    private fun lock() {
+        val app = application as AESCameraApplication
+        app.key = null
+        Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show()
     }
 
     private  fun openFilesList() {
