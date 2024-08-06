@@ -44,7 +44,6 @@ abstract class ProtectedBaseActivity : AppCompatActivity() {
         val passwordEditText = dialogView.findViewById<EditText>(R.id.keyText)
 
         builder.setView(dialogView)
-            .setTitle(getString(R.string.enter_encryption_key_title))
             .setCancelable(false)
             .setPositiveButton("OK") { _, _ ->
                 dialogOpen = false
