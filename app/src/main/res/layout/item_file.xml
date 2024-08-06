@@ -5,6 +5,13 @@
     android:orientation="vertical"
     android:padding="8dp">
 
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/fileCheckBox"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:padding="0dp"
+     />
+
     <com.devil7softwares.aescamera.views.FontAwesomeTextView
         android:id="@+id/fileIcon"
         android:layout_width="48dp"

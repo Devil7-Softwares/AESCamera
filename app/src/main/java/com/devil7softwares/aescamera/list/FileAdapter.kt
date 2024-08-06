@@ -1,5 +1,6 @@
 package com.devil7softwares.aescamera.list
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -29,8 +30,12 @@ import java.io.File
 class FileAdapter(
     private val context: Context,
     private val thumbnailDirectory: File?,
-    private var encryptionKey: String?
+    private var encryptionKey: String?,
+    private val onItemClick: (File) -> Unit,
+    private val onSelectionChanged: (Int) -> Unit
 ) : ListAdapter<File, FileAdapter.FileViewHolder>(FileDiffCallback()) {
+
+    private val selectedItems = mutableSetOf<Int>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FileViewHolder {
         val binding = ItemFileBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -38,22 +43,25 @@ class FileAdapter(
     }
 
     override fun onBindViewHolder(holder: FileViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position in selectedItems)
     }
 
-    inner class FileViewHolder(private val binding: ItemFileBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class FileViewHolder(private val binding: ItemFileBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         init {
-            itemView.setOnClickListener {
-                val file = getItem(bindingAdapterPosition)
-                val intent = Intent(context, DecryptedImageViewerActivity::class.java)
-                intent.data = Uri.fromFile(file)
-                context.startActivity(intent)
+            binding.root.setOnClickListener {
+                onItemClick(getItem(bindingAdapterPosition))
+            }
+            binding.fileCheckBox.setOnClickListener {
+                toggleSelection(bindingAdapterPosition)
             }
         }
 
-        fun bind(file: File) {
+        fun bind(file: File, isSelected: Boolean) {
             binding.fileName.text = file.name
             binding.fileSize.text = formatFileSize(file.length())
+            binding.fileCheckBox.isChecked = isSelected
+
             if (file.name.startsWith("IMG-") && thumbnailDirectory != null) {
                 val thumbnailFile = File(thumbnailDirectory, file.name)
                 if (thumbnailFile.exists()) {
@@ -83,7 +91,8 @@ class FileAdapter(
                 try {
                     val key = encryptionKey ?: return@launch
                     val decryptedBytes = EncryptionUtils.decrypt(thumbnailFile.readBytes(), key)
-                    val bitmap = BitmapFactory.decodeByteArray(decryptedBytes, 0, decryptedBytes.size)
+                    val bitmap =
+                        BitmapFactory.decodeByteArray(decryptedBytes, 0, decryptedBytes.size)
                     withContext(Dispatchers.Main) {
                         showThumbnail(bitmap)
                     }
@@ -105,5 +114,26 @@ class FileAdapter(
                 else -> String.format("%d bytes", size)
             }
         }
+    }
+
+    private fun toggleSelection(position: Int) {
+        if (selectedItems.contains(position)) {
+            selectedItems.remove(position)
+        } else {
+            selectedItems.add(position)
+        }
+        notifyItemChanged(position)
+        onSelectionChanged(selectedItems.size)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun clearSelection() {
+        selectedItems.clear()
+        notifyDataSetChanged()
+        onSelectionChanged(0)
+    }
+
+    fun getSelectedItems(): List<File> {
+        return selectedItems.map { getItem(it) }
     }
 }

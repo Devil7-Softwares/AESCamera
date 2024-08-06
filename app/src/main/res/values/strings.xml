@@ -4,6 +4,11 @@
     <string name="enter_encryption_key_title">Enter Encryption Key</string>
 
     <string name="files_list_title">Files</string>
+    <string name="selected_count">%1$d Selected</string>
+    <string name="delete">Delete</string>
+    <string name="share">Share</string>
+
+    <string name="decrypted_image_viewer_title">Decrypted Image</string>
 
     <string name="fa_solid">solid</string>
     <string name="fa_camera">f030</string>
