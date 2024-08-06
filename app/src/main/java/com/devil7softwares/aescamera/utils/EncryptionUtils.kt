@@ -17,7 +17,7 @@ internal class EncryptionUtils {
             SecureRandom().nextBytes(salt)
 
             // Derive the key
-            val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+            val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
             val spec = PBEKeySpec(password.toCharArray(), salt, 65536, 256) // 256-bit key
             val tmp = factory.generateSecret(spec)
             val secretKey = SecretKeySpec(tmp.encoded, "AES")
@@ -45,7 +45,7 @@ internal class EncryptionUtils {
             val encrypted = encryptedData.slice(32 until encryptedData.size).toByteArray()
 
             // Derive the key
-            val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+            val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
             val spec = PBEKeySpec(password.toCharArray(), salt, 65536, 256) // 256-bit key
             val tmp = factory.generateSecret(spec)
             val secretKey = SecretKeySpec(tmp.encoded, "AES")
