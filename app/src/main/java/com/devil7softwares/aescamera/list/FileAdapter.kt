@@ -133,7 +133,20 @@ class FileAdapter(
         onSelectionChanged(0)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun selectAll() {
+        for (i in 0 until itemCount) {
+            selectedItems.add(i)
+        }
+        notifyDataSetChanged()
+        onSelectionChanged(selectedItems.size)
+    }
+
     fun getSelectedItems(): List<File> {
         return selectedItems.map { getItem(it) }
+    }
+
+    fun getSelectedItemsCount(): Int {
+        return selectedItems.size
     }
 }

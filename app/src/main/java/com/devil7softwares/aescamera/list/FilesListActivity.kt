@@ -1,13 +1,11 @@
 package com.devil7softwares.aescamera.list
 
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
-import androidx.appcompat.view.ActionMode
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.devil7softwares.aescamera.AESCameraApplication
@@ -21,38 +19,7 @@ import java.io.File
 class FilesListActivity : ProtectedBaseActivity() {
     private lateinit var binding: ActivityFilesListBinding
     private lateinit var adapter: FileAdapter
-    private var actionMode: ActionMode? = null
-
-    private val actionModeCallback = object : ActionMode.Callback {
-        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            mode.menuInflater.inflate(R.menu.context_menu, menu)
-            return true
-        }
-
-        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-            return false
-        }
-
-        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-            return when (item.itemId) {
-                R.id.action_delete -> {
-                    deleteSelectedItems()
-                    true
-                }
-
-                R.id.action_share -> {
-                    shareSelectedItems()
-                    true
-                }
-
-                else -> false
-            }
-        }
-
-        override fun onDestroyActionMode(mode: ActionMode) {
-            actionMode = null
-        }
-    }
+    private var optionsMenu: Menu? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +38,8 @@ class FilesListActivity : ProtectedBaseActivity() {
         val app = application as AESCameraApplication
         app.keyLiveData.observe(this) {
             refreshFileList()
+
+            optionsMenu?.findItem(R.id.action_lock)?.isVisible = it != null
         }
         refreshFileList()
     }
@@ -103,21 +72,30 @@ class FilesListActivity : ProtectedBaseActivity() {
     }
 
     private fun onSelectionChanged(selectedCount: Int) {
+        optionsMenu?.findItem(R.id.action_select_all)?.title =
+            if (selectedCount == adapter.itemCount) getString(R.string.deselect_all) else
+                getString(R.string.select_all)
+
         if (selectedCount > 0) {
-            if (actionMode == null) {
-                actionMode = startSupportActionMode(actionModeCallback)
-            }
-            actionMode?.title = getString(R.string.selected_count, selectedCount)
+            optionsMenu?.findItem(R.id.action_delete)?.isVisible = true
+            optionsMenu?.findItem(R.id.action_share)?.isVisible = true
+            supportActionBar?.title = getString(R.string.selected_count, selectedCount)
         } else {
-            actionMode?.finish()
+            optionsMenu?.findItem(R.id.action_delete)?.isVisible = false
+            optionsMenu?.findItem(R.id.action_share)?.isVisible = false
+            supportActionBar?.title = getString(R.string.files_list_title)
         }
     }
 
     private fun refreshFileList() {
         val app = application as AESCameraApplication
         val files =
-            app.outputDirectory?.listFiles()?.filter { it.isFile && !it.name.startsWith(".") && it.extension == "enc" }
+            app.outputDirectory?.listFiles()
+                ?.filter { it.isFile && !it.name.startsWith(".") && it.extension == "enc" }
                 ?: emptyList()
+
+        optionsMenu?.findItem(R.id.action_select_all)?.isVisible = files.isNotEmpty()
+
         adapter.encryptionKey = app.key
         adapter.submitList(files)
     }
@@ -160,8 +138,54 @@ class FilesListActivity : ProtectedBaseActivity() {
         startActivity(intent)
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.file_list_menu, menu)
+        optionsMenu = menu
+
+        optionsMenu?.findItem(R.id.action_select_all)?.isVisible = adapter.itemCount != 0
+
         return true
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressedDispatcher.onBackPressed()
+                true
+            }
+
+            R.id.action_select_all -> {
+                if (adapter.getSelectedItems().size == adapter.itemCount) {
+                    adapter.clearSelection()
+                } else {
+                    adapter.selectAll()
+                }
+
+                true
+            }
+
+            R.id.action_lock -> {
+                val app = application as AESCameraApplication
+                app.key = null
+                true
+            }
+
+            R.id.action_delete -> {
+                deleteSelectedItems()
+                true
+            }
+
+            R.id.action_share -> {
+                shareSelectedItems()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+//    override fun onSupportNavigateUp(): Boolean {
+//        finish()
+//        return true
+//    }
 }

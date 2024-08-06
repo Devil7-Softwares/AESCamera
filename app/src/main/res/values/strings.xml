@@ -2,10 +2,14 @@
     <string name="app_name">AES Camera</string>
     <string name="enter_encryption_key">Enter encryption key</string>
 
-    <string name="files_list_title">Files</string>
-    <string name="selected_count">%1$d Selected</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="lock">Lock</string>
     <string name="delete">Delete</string>
     <string name="share">Share</string>
+
+    <string name="files_list_title">Files</string>
+    <string name="selected_count">%1$d Selected</string>
 
     <string name="decrypted_image_viewer_title">Decrypted Image</string>
     <string name="error_no_file_selected">Error: No file selected</string>

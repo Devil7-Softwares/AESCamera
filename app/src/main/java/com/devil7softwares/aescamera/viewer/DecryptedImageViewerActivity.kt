@@ -2,12 +2,12 @@ package com.devil7softwares.aescamera.viewer
 
 import android.os.Bundle
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
@@ -53,8 +53,9 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
         }
 
         if (fileUri != null) {
-            supportActionBar?.title =
-                fileUri?.lastPathSegment ?: getString(R.string.decrypted_image_viewer_title)
+            val title = fileUri?.lastPathSegment ?: getString(R.string.decrypted_image_viewer_title)
+            supportActionBar?.title = title
+
             loadDecryptedImage()
         } else {
             Toast.makeText(this, getString(R.string.error_no_file_selected), Toast.LENGTH_SHORT)
@@ -165,10 +166,24 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+
+        menuInflater.inflate(R.menu.common_menu, menu)
+
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
                 onBackPressedDispatcher.onBackPressed()
+                true
+            }
+
+            R.id.action_lock -> {
+                val app = application as AESCameraApplication
+                app.key = null
                 true
             }
 
