@@ -12,6 +12,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:keepScreenOn="true"
+        app:cameraExperimental="true"
+        app:cameraEngine="camera2"
         app:cameraGesturePinch="zoom"
         app:cameraGestureTap="autoFocus"
         app:cameraPlaySounds="false"
