@@ -10,30 +10,23 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.Toast
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.devil7softwares.aescamera.databinding.ActivityMainBinding
 import com.devil7softwares.aescamera.list.FilesListActivity
 import com.devil7softwares.aescamera.utils.EncryptionUtils
+import com.otaliastudios.cameraview.CameraException
+import com.otaliastudios.cameraview.PictureResult
+import com.otaliastudios.cameraview.controls.Facing
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 
 class MainActivity : ProtectedBaseActivity() {
     private lateinit var binding: ActivityMainBinding;
 
-    private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-    private var imageCapture: ImageCapture? = null
-    private lateinit var cameraExecutor: ExecutorService
     private var thumbnailSize: Int = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,25 +37,35 @@ class MainActivity : ProtectedBaseActivity() {
 
         supportActionBar?.hide();
 
-        cameraExecutor = Executors.newSingleThreadExecutor()
-
         // Check camera permissions if all permission granted
         // start camera else ask for the permission
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
+        if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
+
+        binding.camera.setLifecycleOwner(this);
 
         val app = application as AESCameraApplication
 
         app.keyLiveData.observe(this) {
             binding.lockButton.visibility = if (it == null) {
-                View.GONE
+                View.INVISIBLE
             } else {
                 View.VISIBLE
             }
         }
+
+        binding.camera.addCameraListener(object : com.otaliastudios.cameraview.CameraListener() {
+            override fun onPictureTaken(pictureResult: PictureResult) {
+                super.onPictureTaken(pictureResult)
+                onPicTureTaken(pictureResult)
+            }
+
+            override fun onCameraError(exception: CameraException) {
+                super.onCameraError(exception)
+                onCameraError(exception)
+            }
+        })
 
         binding.cameraCaptureButton.setOnClickListener {
             takePhoto()
@@ -104,105 +107,69 @@ class MainActivity : ProtectedBaseActivity() {
     }
 
     private fun flipCamera() {
-        cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
-            CameraSelector.DEFAULT_FRONT_CAMERA
+        binding.camera.facing = if (binding.camera.facing == Facing.FRONT) {
+            Facing.BACK
         } else {
-            CameraSelector.DEFAULT_BACK_CAMERA
+            Facing.FRONT
         }
-        startCamera()
     }
 
     private fun takePhoto() {
         disableControls()
-        val imageCapture = imageCapture ?: return
-        val outputStream = ByteArrayOutputStream()
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputStream).build()
-        imageCapture.takePicture(
-            outputOptions,
-            ContextCompat.getMainExecutor(this),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {
-                    val msg = "Photo capture failed: ${exc.message}"
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
-                    Log.e(TAG, msg, exc)
-                    enableControls()
-                }
 
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val app = application as AESCameraApplication
-                    val key = app.key
-                    val outputDirectory = app.outputDirectory
-                    val thumbnailDirectory = app.thumbnailDirectory
-                    if (key == null) {
-                        Toast.makeText(this@MainActivity, "Key not found", Toast.LENGTH_SHORT).show()
-                        return
-                    }
-
-                    val timestamp = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())
-
-                    val fileName = "IMG-$timestamp.enc"
-
-                    // Create main encrypted file
-                    val encryptedFile = File(outputDirectory, fileName)
-                    EncryptionUtils.encrypt(outputStream, key).let {
-                        encryptedFile.writeBytes(it)
-                    }
-
-                    // Create and encrypt thumbnail
-                    val thumbnailFile = File(thumbnailDirectory, fileName)
-
-                    // Create thumbnail
-                    val fullSizeImage = BitmapFactory.decodeByteArray(outputStream.toByteArray(), 0, outputStream.size())
-                    val thumbnail = Bitmap.createScaledBitmap(fullSizeImage, thumbnailSize, thumbnailSize, true)
-
-                    val thumbnailOutputStream = ByteArrayOutputStream()
-                    thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, thumbnailOutputStream)
-
-                    // Encrypt and save thumbnail
-                    EncryptionUtils.encrypt(thumbnailOutputStream, key).let {
-                        thumbnailFile.writeBytes(it)
-                    }
-
-                    val msg = "Photo and thumbnail saved: ${encryptedFile.toURI()}"
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
-                    Log.d(TAG, msg)
-                    enableControls()
-                }
-            })
-    }
-
-    private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
-        cameraProviderFuture.addListener(Runnable {
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.surfaceProvider = binding.viewFinder.surfaceProvider
-                }
-
-            imageCapture = ImageCapture.Builder().build()
-
-            try {
-                // Unbind use cases before rebinding
-                cameraProvider.unbindAll()
-
-                // Bind use cases to camera
-                cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture
-                )
-
-            } catch (exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
-            }
-
-        }, ContextCompat.getMainExecutor(this))
+        binding.camera.takePicture()
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun onCameraError(exception: CameraException) {
+        val msg = "Photo capture failed: ${exception.message}"
+        Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
+        Log.e(TAG, msg, exception)
+        enableControls()
+    }
+
+    private fun onPicTureTaken(pictureResult: PictureResult) {
+        val app = application as AESCameraApplication
+        val key = app.key
+        val outputDirectory = app.outputDirectory
+        val thumbnailDirectory = app.thumbnailDirectory
+        if (key == null) {
+            Toast.makeText(this@MainActivity, "Key not found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val timestamp = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())
+
+        val fileName = "IMG-$timestamp.enc"
+
+        // Create main encrypted file
+        val encryptedFile = File(outputDirectory, fileName)
+        EncryptionUtils.encrypt(pictureResult.data, key).let {
+            encryptedFile.writeBytes(it)
+        }
+
+        // Create and encrypt thumbnail
+        val thumbnailFile = File(thumbnailDirectory, fileName)
+
+        // Create thumbnail
+        val fullSizeImage = BitmapFactory.decodeByteArray(pictureResult.data, 0, pictureResult.data.size)
+        val thumbnail = Bitmap.createScaledBitmap(fullSizeImage, thumbnailSize, thumbnailSize, true)
+
+        val thumbnailOutputStream = ByteArrayOutputStream()
+        thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, thumbnailOutputStream)
+
+        // Encrypt and save thumbnail
+        EncryptionUtils.encrypt(thumbnailOutputStream, key).let {
+            thumbnailFile.writeBytes(it)
+        }
+
+        val msg = "Photo and thumbnail saved: ${encryptedFile.toURI()}"
+        Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
+        Log.d(TAG, msg)
+        enableControls()
     }
 
     // checks the camera permission
@@ -214,9 +181,7 @@ class MainActivity : ProtectedBaseActivity() {
 
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             // If all permissions granted , then start Camera
-            if (allPermissionsGranted()) {
-                startCamera()
-            } else {
+            if (!allPermissionsGranted()) {
                 // If permissions are not granted,
                 // present a toast to notify the user that
                 // the permissions were not granted.
@@ -232,10 +197,5 @@ class MainActivity : ProtectedBaseActivity() {
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 20
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
     }
 }
