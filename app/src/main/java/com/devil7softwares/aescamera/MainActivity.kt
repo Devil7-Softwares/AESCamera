@@ -58,14 +58,19 @@ class MainActivity : ProtectedBaseActivity() {
         }
 
         binding.camera.addCameraListener(object : com.otaliastudios.cameraview.CameraListener() {
+            override fun onPictureShutter() {
+                super.onPictureShutter()
+                pictureShutter()
+            }
+
             override fun onPictureTaken(pictureResult: PictureResult) {
                 super.onPictureTaken(pictureResult)
-                onPicTureTaken(pictureResult)
+                pictureTaken(pictureResult)
             }
 
             override fun onCameraError(exception: CameraException) {
                 super.onCameraError(exception)
-                onCameraError(exception)
+                cameraError(exception)
             }
         })
 
@@ -117,8 +122,6 @@ class MainActivity : ProtectedBaseActivity() {
     }
 
     private fun takePhoto() {
-        disableControls()
-
         binding.camera.takePicture()
     }
 
@@ -126,14 +129,18 @@ class MainActivity : ProtectedBaseActivity() {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun onCameraError(exception: CameraException) {
+    private fun cameraError(exception: CameraException) {
         val msg = "Photo capture failed: ${exception.message}"
         Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
         Log.e(TAG, msg, exception)
         enableControls()
     }
 
-    private fun onPicTureTaken(pictureResult: PictureResult) {
+    private fun pictureShutter() {
+        disableControls()
+    }
+
+    private fun pictureTaken(pictureResult: PictureResult) {
         val app = application as AESCameraApplication
         val key = app.key
         val outputDirectory = app.outputDirectory
