@@ -20,6 +20,7 @@ import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.controls.Facing
 import com.otaliastudios.cameraview.gesture.Gesture
 import com.otaliastudios.cameraview.gesture.GestureAction
+import com.otaliastudios.cameraview.markers.DefaultAutoFocusMarker
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.text.SimpleDateFormat
@@ -38,6 +39,8 @@ class MainActivity : ProtectedBaseActivity() {
         setContentView(binding.root)
 
         supportActionBar?.hide();
+
+        binding.camera.setAutoFocusMarker(DefaultAutoFocusMarker())
 
         // Check camera permissions if all permission granted
         // start camera else ask for the permission
