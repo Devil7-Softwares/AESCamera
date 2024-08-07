@@ -12,6 +12,10 @@ import javax.crypto.spec.SecretKeySpec
 internal class EncryptionUtils {
     companion object {
         fun encrypt(stream: ByteArrayOutputStream, password: String): ByteArray {
+            return encrypt(stream.toByteArray(), password)
+        }
+
+        fun encrypt(byteArray: ByteArray, password: String): ByteArray {
             // Generate a random salt
             val salt = ByteArray(16)
             SecureRandom().nextBytes(salt)
@@ -32,7 +36,7 @@ internal class EncryptionUtils {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
 
             // Perform encryption
-            val encrypted = cipher.doFinal(stream.toByteArray())
+            val encrypted = cipher.doFinal(byteArray)
 
             // Combine salt + iv + encrypted data
             return salt + iv + encrypted
