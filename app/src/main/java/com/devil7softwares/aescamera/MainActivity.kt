@@ -158,7 +158,11 @@ class MainActivity : ProtectedBaseActivity() {
 
         // Create thumbnail
         val fullSizeImage = BitmapFactory.decodeByteArray(pictureResult.data, 0, pictureResult.data.size)
-        val thumbnail = Bitmap.createScaledBitmap(fullSizeImage, thumbnailSize, thumbnailSize, true)
+
+        val thumbnailWidth = thumbnailSize;
+        val thumbnailHeight = fullSizeImage.height * thumbnailWidth / fullSizeImage.width;
+
+        val thumbnail = Bitmap.createScaledBitmap(fullSizeImage, thumbnailWidth, thumbnailHeight, true)
 
         val thumbnailOutputStream = ByteArrayOutputStream()
         thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, thumbnailOutputStream)
