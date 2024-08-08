@@ -177,9 +177,4 @@ class FilesListActivity : ProtectedBaseActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-
-//    override fun onSupportNavigateUp(): Boolean {
-//        finish()
-//        return true
-//    }
 }
