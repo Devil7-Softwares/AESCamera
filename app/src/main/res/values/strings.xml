@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">AES Camera</string>
-    <string name="enter_encryption_key">Enter encryption key</string>
+
+    <string name="enter_encryption_key_title">Key for Encryption</string>
+    <string name="enter_encryption_key">Enter key</string>
+    <string name="show_key">Show key</string>
 
     <string name="select_all">Select All</string>
     <string name="deselect_all">Deselect All</string>

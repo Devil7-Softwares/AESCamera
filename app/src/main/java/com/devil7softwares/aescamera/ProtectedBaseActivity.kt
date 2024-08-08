@@ -1,10 +1,14 @@
 package com.devil7softwares.aescamera
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
+import android.view.inputmethod.EditorInfo
+import android.widget.CheckBox
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+
 
 abstract class ProtectedBaseActivity : AppCompatActivity() {
     private var dialogOpen: Boolean = false
@@ -42,8 +46,19 @@ abstract class ProtectedBaseActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
         val dialogView = inflater.inflate(R.layout.dialog_key, null)
         val passwordEditText = dialogView.findViewById<EditText>(R.id.keyText)
+        val showPasswordCheckBox = dialogView.findViewById<CheckBox>(R.id.showKey)
+
+        showPasswordCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                passwordEditText.inputType = EditorInfo.TYPE_CLASS_TEXT
+            } else {
+                passwordEditText.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            }
+        }
 
         builder.setView(dialogView)
+            .setTitle(getString(R.string.enter_encryption_key_title))
             .setCancelable(false)
             .setPositiveButton("OK") { _, _ ->
                 dialogOpen = false
