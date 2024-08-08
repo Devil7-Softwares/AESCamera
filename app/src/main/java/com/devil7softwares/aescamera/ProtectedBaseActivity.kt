@@ -3,6 +3,7 @@ package com.devil7softwares.aescamera
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.CheckBox
 import android.widget.EditText
@@ -15,6 +16,11 @@ abstract class ProtectedBaseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
 
         checkPassword()
 
