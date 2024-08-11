@@ -14,23 +14,20 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.devil7softwares.aescamera.databinding.ActivityMainBinding
 import com.devil7softwares.aescamera.list.FilesListActivity
+import com.devil7softwares.aescamera.utils.CommonUtils
 import com.devil7softwares.aescamera.utils.EncryptionUtils
+import com.devil7softwares.aescamera.utils.ThumbnailUtils
 import com.otaliastudios.cameraview.CameraException
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.controls.Facing
-import com.otaliastudios.cameraview.gesture.Gesture
-import com.otaliastudios.cameraview.gesture.GestureAction
 import com.otaliastudios.cameraview.markers.DefaultAutoFocusMarker
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 
 class MainActivity : ProtectedBaseActivity() {
     private lateinit var binding: ActivityMainBinding;
 
-    private var thumbnailSize: Int = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,8 +86,6 @@ class MainActivity : ProtectedBaseActivity() {
         binding.lockButton.setOnClickListener {
             lock()
         }
-
-        thumbnailSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics).toInt()
     }
 
     private fun disableControls() {
@@ -153,9 +148,7 @@ class MainActivity : ProtectedBaseActivity() {
             return
         }
 
-        val timestamp = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())
-
-        val fileName = "IMG-$timestamp.enc"
+        val fileName = CommonUtils.getImageFileName()
 
         // Create main encrypted file
         val encryptedFile = File(outputDirectory, fileName)
@@ -163,28 +156,10 @@ class MainActivity : ProtectedBaseActivity() {
             encryptedFile.writeBytes(it)
         }
 
-        // Create and encrypt thumbnail
-        val thumbnailFile = File(thumbnailDirectory, fileName)
-
-        // Create thumbnail
-        val fullSizeImage = BitmapFactory.decodeByteArray(pictureResult.data, 0, pictureResult.data.size)
-
-        val thumbnailWidth = thumbnailSize;
-        val thumbnailHeight = fullSizeImage.height * thumbnailWidth / fullSizeImage.width;
-
-        val thumbnail = Bitmap.createScaledBitmap(fullSizeImage, thumbnailWidth, thumbnailHeight, true)
-
-        val thumbnailOutputStream = ByteArrayOutputStream()
-        thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, thumbnailOutputStream)
-
-        // Encrypt and save thumbnail
-        EncryptionUtils.encrypt(thumbnailOutputStream, key).let {
-            thumbnailFile.writeBytes(it)
+        if (thumbnailDirectory !== null) {
+            ThumbnailUtils.createImageThumbnail(app, fileName, pictureResult.data)
         }
 
-        val msg = "Photo and thumbnail saved: ${encryptedFile.toURI()}"
-        Toast.makeText(baseContext, msg, Toast.LENGTH_LONG).show()
-        Log.d(TAG, msg)
         enableControls()
     }
 
@@ -210,7 +185,6 @@ class MainActivity : ProtectedBaseActivity() {
 
     companion object {
         private const val TAG = "AESCamera"
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 20
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
