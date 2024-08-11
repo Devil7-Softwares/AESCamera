@@ -143,6 +143,11 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
 
     private fun setLoading(loading: Boolean) {
         binding.decryptedImageViewProgress.visibility = if (loading) View.VISIBLE else View.GONE
+
+        if (!loading) {
+            binding.decryptedImageView.zoomTo(1f, false)
+            binding.decryptedImageView.panTo(0f, 0f, false)
+        }
     }
 
     private fun updateButtons() {
