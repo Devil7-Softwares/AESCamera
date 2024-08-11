@@ -10,6 +10,7 @@
     <string name="lock">Lock</string>
     <string name="delete">Delete</string>
     <string name="share">Share</string>
+    <string name="add_to_vault">Add to Vault</string>
 
     <string name="files_list_title">Files</string>
     <string name="selected_count">%1$d Selected</string>
@@ -20,6 +21,7 @@
     <string name="file_open_failed_message">Unable to open file!</string>
     <string name="image_decryption_failed_message">Failed to decrypt image!</string>
     <string name="image_decode_failed_message">Failed to decode image!</string>
+    <string name="file_added_to_vault_message">File added to vault</string>
 
     <string name="fa_solid">solid</string>
     <string name="fa_camera">f030</string>

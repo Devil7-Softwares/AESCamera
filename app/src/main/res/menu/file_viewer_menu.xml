@@ -6,4 +6,10 @@
         android:icon="@drawable/ic_lock"
         android:title="@string/lock"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_add_to_vault"
+        android:icon="@drawable/ic_vault"
+        android:title="@string/add_to_vault"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
 </menu>

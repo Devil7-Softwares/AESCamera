@@ -1,11 +1,12 @@
 package com.devil7softwares.aescamera.viewer
 
-import android.os.Bundle
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION
+import android.os.Bundle
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -15,17 +16,22 @@ import com.devil7softwares.aescamera.AESCameraApplication
 import com.devil7softwares.aescamera.ProtectedBaseActivity
 import com.devil7softwares.aescamera.R
 import com.devil7softwares.aescamera.databinding.ActivityDecryptedImageViewerBinding
+import com.devil7softwares.aescamera.utils.CommonUtils
 import com.devil7softwares.aescamera.utils.EncryptionUtils
+import com.devil7softwares.aescamera.utils.ThumbnailUtils
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class DecryptedImageViewerActivity : ProtectedBaseActivity() {
 
     private lateinit var binding: ActivityDecryptedImageViewerBinding
     private var fileUri: Uri? = null
+    private var fileName: String? = null;
+    private var menu: Menu? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,9 +52,11 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
             }
         }
 
+        val fileUri = this.fileUri
+
         if (fileUri != null) {
-            val title = fileUri?.lastPathSegment ?: getString(R.string.decrypted_image_viewer_title)
-            supportActionBar?.title = title
+            fileName = getFileName(fileUri)
+            supportActionBar?.title = fileName ?: getString(R.string.decrypted_image_viewer_title)
 
             loadDecryptedImage()
         } else {
@@ -66,10 +74,37 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
         }
     }
 
+    private fun getFileName(uri: Uri): String? {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex != -1) {
+                        result = cursor.getString(nameIndex)
+                    }
+                }
+            } finally {
+                cursor?.close()
+            }
+        }
+        if (result == null) {
+            result = uri.path
+            val cut = result?.lastIndexOf('/')
+            if (cut != -1) {
+                result = result?.substring(cut!! + 1)
+            }
+        }
+        return result
+    }
+
     private fun clearError() {
         binding.decryptedImageViewError.text = ""
         binding.decryptedImageViewError.visibility = View.GONE
         binding.decryptedImageViewResetKey.visibility = View.GONE
+
+        menu?.findItem(R.id.action_add_to_vault)?.isVisible = false
     }
 
     private fun showError(message: String, showResetKey: Boolean = false) {
@@ -78,6 +113,8 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
         binding.decryptedImageViewResetKey.visibility =
             if (showResetKey) View.VISIBLE else View.GONE
         binding.decryptedImageView.setImageResource(R.drawable.ic_blank)
+
+        menu?.findItem(R.id.action_add_to_vault)?.isVisible = false
     }
 
     private fun setLoading(loading: Boolean) {
@@ -131,6 +168,18 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
                     return@launch
                 }
 
+                if (fileUri.authority == "${application.packageName}.provider") {
+                    try {
+                        ThumbnailUtils.createImageThumbnail(
+                            app,
+                            fileUri.lastPathSegment ?: CommonUtils.getImageFileName(),
+                            decryptedBytes
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to create thumbnail for opened file! ${e.message}", e)
+                    }
+                }
+
                 val bitmap = runCatching {
                     BitmapFactory.decodeByteArray(decryptedBytes, 0, decryptedBytes.size)
                 }.getOrElse {
@@ -143,6 +192,10 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
 
                 withContext(Dispatchers.Main) {
                     binding.decryptedImageView.setImageBitmap(bitmap)
+
+                    if (fileUri.authority != "${application.packageName}.provider") {
+                        menu?.findItem(R.id.action_add_to_vault)?.isVisible = true
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error: ${e.message}", e)
@@ -160,10 +213,52 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
         }
     }
 
+    private fun addToVault() {
+        val app = application as AESCameraApplication
+
+        if (app.key == null) {
+            showError(getString(R.string.enter_key_message))
+            return
+        }
+
+        val fileUri = this.fileUri
+
+        if (fileUri == null) {
+            showError(getString(R.string.error_no_file_selected))
+            return
+        }
+
+        var fileName = this.fileName ?: CommonUtils.getImageFileName()
+
+        if (!fileName.endsWith(".enc")) {
+            fileName = "${fileName}.enc"
+        }
+
+        val outputFile = File(app.outputDirectory, fileName)
+
+        // Copy file from fileUri to outputFile
+        contentResolver.openInputStream(fileUri)?.use { inputStream ->
+            outputFile.outputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+
+            try {
+                ThumbnailUtils.createImageThumbnail(app, fileName, inputStream.readBytes())
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to create thumbnail for imported file! ${e.message}", e)
+            }
+        }
+
+        Toast.makeText(this, getString(R.string.file_added_to_vault_message), Toast.LENGTH_SHORT)
+            .show()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         super.onCreateOptionsMenu(menu)
 
-        menuInflater.inflate(R.menu.common_menu, menu)
+        menuInflater.inflate(R.menu.file_viewer_menu, menu)
+
+        this.menu = menu
 
         return true
     }
@@ -178,6 +273,11 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
             R.id.action_lock -> {
                 val app = application as AESCameraApplication
                 app.key = null
+                true
+            }
+
+            R.id.action_add_to_vault -> {
+                addToVault()
                 true
             }
 
