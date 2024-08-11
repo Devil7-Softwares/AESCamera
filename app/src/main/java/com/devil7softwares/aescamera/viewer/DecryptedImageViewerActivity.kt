@@ -32,6 +32,8 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
     private var fileUri: Uri? = null
     private var fileName: String? = null;
     private var menu: Menu? = null
+    private var uris: ArrayList<Uri>? = null
+    private var currentIndex: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +60,20 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
             fileName = getFileName(fileUri)
             supportActionBar?.title = fileName ?: getString(R.string.decrypted_image_viewer_title)
 
+            uris = if (intent.hasExtra("uris")) {
+                if (VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableArrayListExtra("uris")
+                } else {
+                    intent.getParcelableArrayListExtra("uris", Uri::class.java)
+                }
+            } else {
+                null
+            }
+
+            if (uris != null) {
+                currentIndex = uris!!.indexOf(fileUri)
+            }
+
             loadDecryptedImage()
         } else {
             Toast.makeText(this, getString(R.string.error_no_file_selected), Toast.LENGTH_SHORT)
@@ -65,12 +81,20 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
             finish()
         }
 
+        updateButtons()
+
         (application as AESCameraApplication).keyLiveData.observe(this) {
             loadDecryptedImage()
         }
 
         binding.decryptedImageViewResetKey.setOnClickListener {
             (application as AESCameraApplication).key = null
+        }
+        binding.decryptedImageViewNext.setOnClickListener {
+            loadNextImage()
+        }
+        binding.decryptedImageViewPrevious.setOnClickListener {
+            loadPreviousImage()
         }
     }
 
@@ -119,6 +143,58 @@ class DecryptedImageViewerActivity : ProtectedBaseActivity() {
 
     private fun setLoading(loading: Boolean) {
         binding.decryptedImageViewProgress.visibility = if (loading) View.VISIBLE else View.GONE
+    }
+
+    private fun updateButtons() {
+        val uris = this.uris
+
+        if (uris == null) {
+            binding.decryptedImageViewNext.visibility = View.GONE
+            binding.decryptedImageViewPrevious.visibility = View.GONE
+            return
+        }
+
+        binding.decryptedImageViewNext.visibility = View.VISIBLE
+        binding.decryptedImageViewPrevious.visibility = View.VISIBLE
+
+        binding.decryptedImageViewNext.isEnabled = currentIndex + 1 < uris.size
+        binding.decryptedImageViewPrevious.isEnabled = currentIndex - 1 >= 0
+    }
+
+    private fun loadNextImage() {
+        val uris = this.uris ?: return
+
+        if (currentIndex + 1 >= uris.size) {
+            return
+        }
+
+        currentIndex++
+
+        fileUri = uris[currentIndex]
+        fileName = getFileName(fileUri!!)
+        supportActionBar?.title = fileName ?: getString(R.string.decrypted_image_viewer_title)
+
+        loadDecryptedImage()
+
+        updateButtons()
+    }
+
+    private fun loadPreviousImage() {
+        val uris = this.uris ?: return
+
+        if (currentIndex - 1 < 0) {
+            return
+        }
+
+        currentIndex--
+
+        fileUri = uris[currentIndex]
+        fileName = getFileName(fileUri!!)
+        supportActionBar?.title = fileName ?: getString(R.string.decrypted_image_viewer_title)
+
+        loadDecryptedImage()
+
+        updateButtons()
     }
 
     @OptIn(DelicateCoroutinesApi::class)

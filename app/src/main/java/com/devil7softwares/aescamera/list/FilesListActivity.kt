@@ -47,8 +47,10 @@ class FilesListActivity : ProtectedBaseActivity() {
 
     private fun setupRecyclerView() {
         val app = application as AESCameraApplication
-        adapter = FileAdapter(this, app.thumbnailDirectory, app.key, onItemClick = { file ->
-            onItemClick(file)
+        adapter = FileAdapter(this, app.thumbnailDirectory, app.key, onItemClick = { file, files ->
+            run {
+                onItemClick(file, files)
+            }
         }, onSelectionChanged = { selectedCount ->
             onSelectionChanged(selectedCount)
         })
@@ -58,10 +60,14 @@ class FilesListActivity : ProtectedBaseActivity() {
         }
     }
 
-    private fun onItemClick(file: File) {
+    private fun onItemClick(file: File, files: ArrayList<File>) {
         val intent = Intent(this, DecryptedImageViewerActivity::class.java)
         val uri = FileProvider.getUriForFile(this, application.packageName + ".provider", file)
+        val uris = ArrayList<Uri>(files.let {
+            it.map { file -> FileProvider.getUriForFile(this, application.packageName + ".provider", file) }
+        })
         intent.data = uri
+        intent.putParcelableArrayListExtra("uris", uris)
         startActivity(intent)
     }
 

@@ -31,7 +31,7 @@ class FileAdapter(
     private val context: Context,
     private val thumbnailDirectory: File?,
     var encryptionKey: String?,
-    private val onItemClick: (File) -> Unit,
+    private val onItemClick: (File, ArrayList<File>) -> Unit,
     private val onSelectionChanged: (Int) -> Unit
 ) : ListAdapter<File, FileAdapter.FileViewHolder>(FileDiffCallback()) {
 
@@ -50,7 +50,13 @@ class FileAdapter(
         RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                onItemClick(getItem(bindingAdapterPosition))
+                val files = ArrayList<File>()
+
+                for (i in 0 until itemCount) {
+                    files.add(getItem(i))
+                }
+
+                onItemClick(getItem(bindingAdapterPosition), files)
             }
             binding.fileCheckBox.setOnClickListener {
                 toggleSelection(bindingAdapterPosition)
