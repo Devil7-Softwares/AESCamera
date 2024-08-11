@@ -90,9 +90,11 @@ class FilesListActivity : ProtectedBaseActivity() {
     private fun refreshFileList() {
         val app = application as AESCameraApplication
         val files =
-            app.outputDirectory?.listFiles()
+            (app.outputDirectory?.listFiles()
                 ?.filter { it.isFile && !it.name.startsWith(".") && it.extension == "enc" }
-                ?: emptyList()
+                ?: emptyList()).let { list ->
+                list.sortedByDescending { it.lastModified() }
+            }
 
         optionsMenu?.findItem(R.id.action_select_all)?.isVisible = files.isNotEmpty()
 
