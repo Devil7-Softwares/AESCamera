@@ -113,6 +113,7 @@ class FilesListActivity : ProtectedBaseActivity() {
         optionsMenu?.findItem(R.id.action_select_all)?.isVisible = files.isNotEmpty()
 
         adapter.encryptionKey = app.key
+        adapter.clearSelection()
         adapter.submitList(files)
     }
 
@@ -132,7 +133,6 @@ class FilesListActivity : ProtectedBaseActivity() {
         }
 
         refreshFileList()
-        adapter.clearSelection()
     }
 
     private fun shareSelectedItems() {
@@ -152,6 +152,8 @@ class FilesListActivity : ProtectedBaseActivity() {
 
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files)
         startActivity(intent)
+
+        adapter.clearSelection()
     }
 
     private fun getWhatsappContacts(): List<ContactItem> {
@@ -318,5 +320,7 @@ class FilesListActivity : ProtectedBaseActivity() {
 
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files)
         startActivity(intent)
+
+        adapter.clearSelection()
     }
 }
