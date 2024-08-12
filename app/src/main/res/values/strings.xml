@@ -11,6 +11,7 @@
     <string name="delete">Delete</string>
     <string name="share">Share</string>
     <string name="add_to_vault">Add to Vault</string>
+    <string name="share_whatsapp">Share on WhatsApp</string>
 
     <string name="files_list_title">Files</string>
     <string name="selected_count">%1$d Selected</string>
