@@ -260,6 +260,21 @@ class FilesListActivity : ProtectedBaseActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        adapter.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adapter.onResume()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        adapter.onDestroy()
+    }
+
     private fun showSelectContactDialog() {
         if (ContextCompat.checkSelfPermission(
                 this,

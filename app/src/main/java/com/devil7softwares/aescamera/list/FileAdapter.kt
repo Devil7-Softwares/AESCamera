@@ -36,10 +36,23 @@ class FileAdapter(
 ) : ListAdapter<File, FileAdapter.FileViewHolder>(FileDiffCallback()) {
 
     private val selectedItems = mutableSetOf<Int>()
+    private val thumbnailLoader = ThumbnailLoader(context, thumbnailDirectory, encryptionKey)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FileViewHolder {
         val binding = ItemFileBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return FileViewHolder(binding)
+    }
+
+    fun onPause() {
+        thumbnailLoader.pauseLoading()
+    }
+
+    fun onResume() {
+        thumbnailLoader.resumeLoading()
+    }
+
+    fun onDestroy() {
+        thumbnailLoader.cancelLoading()
     }
 
     override fun onBindViewHolder(holder: FileViewHolder, position: Int) {
@@ -69,44 +82,19 @@ class FileAdapter(
             binding.fileCheckBox.isChecked = isSelected
 
             showIcon(context.getString(R.string.fa_file_image))
-
-            if (file.name.startsWith("IMG-") && thumbnailDirectory != null) {
-                val thumbnailFile = File(thumbnailDirectory, file.name)
-                if (thumbnailFile.exists()) {
-                    loadDecryptedThumbnail(thumbnailFile)
-                }
-            }
+            thumbnailLoader.loadThumbnail(this, file)
         }
 
-        private fun showThumbnail(bitmap: Bitmap) {
+        fun showThumbnail(bitmap: Bitmap) {
             binding.fileThumbnail.setImageBitmap(bitmap)
             binding.fileIcon.visibility = View.GONE
             binding.fileThumbnail.visibility = View.VISIBLE
         }
 
-        private fun showIcon(icon: String) {
+        fun showIcon(icon: String) {
             binding.fileIcon.setIcon(icon)
             binding.fileIcon.visibility = View.VISIBLE
             binding.fileThumbnail.visibility = View.GONE
-        }
-
-        private fun loadDecryptedThumbnail(thumbnailFile: File) {
-            GlobalScope.launch(Dispatchers.IO) {
-                try {
-                    val key = encryptionKey ?: return@launch
-                    val decryptedBytes = EncryptionUtils.decrypt(thumbnailFile.readBytes(), key)
-                    val bitmap =
-                        BitmapFactory.decodeByteArray(decryptedBytes, 0, decryptedBytes.size)
-                    withContext(Dispatchers.Main) {
-                        showThumbnail(bitmap)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        showIcon(context.getString(R.string.fa_file_image))
-                    }
-                }
-            }
         }
 
         private fun formatFileSize(size: Long): String {
