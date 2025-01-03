@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.devil7softwares.aescamera.databinding.ActivityMainBinding
+import com.devil7softwares.aescamera.enums.FontAwesomeStyle
 import com.devil7softwares.aescamera.list.FilesListActivity
 import com.devil7softwares.aescamera.utils.CommonUtils
 import com.devil7softwares.aescamera.utils.EncryptionUtils
@@ -86,18 +87,23 @@ class MainActivity : ProtectedBaseActivity() {
         binding.lockButton.setOnClickListener {
             lock()
         }
+        binding.flashButton.setOnClickListener {
+            toggleFlash()
+        }
     }
 
     private fun disableControls() {
         binding.cameraCaptureButton.isEnabled = false
         binding.cameraFlipButton.isEnabled = false
         binding.openFilesListButton.isEnabled = false
+        binding.flashButton.isEnabled = false
     }
 
     private fun enableControls() {
         binding.cameraCaptureButton.isEnabled = true
         binding.cameraFlipButton.isEnabled = true
         binding.openFilesListButton.isEnabled = true
+        binding.flashButton.isEnabled = true
     }
 
     private fun lock() {
@@ -111,11 +117,31 @@ class MainActivity : ProtectedBaseActivity() {
         startActivity(intent)
     }
 
+    private fun toggleFlash() {
+        binding.camera.flash = if (binding.camera.flash == com.otaliastudios.cameraview.controls.Flash.OFF) {
+            com.otaliastudios.cameraview.controls.Flash.ON
+        } else {
+            com.otaliastudios.cameraview.controls.Flash.OFF
+        }
+
+        if (binding.camera.flash == com.otaliastudios.cameraview.controls.Flash.ON) {
+            binding.flashButton.setFontAwesomeStyle("solid")
+        } else {
+            binding.flashButton.setFontAwesomeStyle("regular")
+        }
+    }
+
     private fun flipCamera() {
         binding.camera.facing = if (binding.camera.facing == Facing.FRONT) {
             Facing.BACK
         } else {
             Facing.FRONT
+        }
+
+        if (binding.camera.facing == Facing.FRONT) {
+            binding.flashButton.visibility = View.INVISIBLE
+        } else {
+            binding.flashButton.visibility = View.VISIBLE
         }
     }
 

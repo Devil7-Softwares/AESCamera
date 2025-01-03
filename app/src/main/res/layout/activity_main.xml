@@ -23,6 +23,22 @@
         app:layout_constraintTop_toBottomOf="@id/lock_button" />
 
     <com.devil7softwares.aescamera.views.FontAwesomeButton
+        android:id="@+id/flash_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="30dp"
+        android:elevation="2dp"
+        android:padding="0dp"
+        android:scaleType="fitCenter"
+        android:textColor="@color/white"
+        android:textSize="25sp"
+        app:faIcon="@string/fa_light_bulb"
+        app:faStyle="regular"
+        app:iconTint="@null"
+        app:layout_constraintLeft_toLeftOf="@id/open_files_list_button"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.devil7softwares.aescamera.views.FontAwesomeButton
         android:id="@+id/lock_button"
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -36,8 +52,7 @@
         app:faIcon="@string/fa_lock"
         app:faStyle="solid"
         app:iconTint="@null"
-        app:layout_constraintLeft_toRightOf="@id/camera_capture_button"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintRight_toRightOf="@id/camera_flip_button"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.devil7softwares.aescamera.views.FontAwesomeButton
